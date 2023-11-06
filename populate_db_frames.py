@@ -11,7 +11,7 @@ file6 = "database/List.csv"
 
 # output = "CompiledData.xlsx"
 
-engine = create_engine('sqlite://', echo=False)
+engine = create_engine(f'sqlite:///bookworms_db.sqlite', echo=False)
 df1 = pd.read_csv(file1)
 print(df1)
 
