@@ -2,18 +2,18 @@ import sqlite3
 import pandas as pd
 from sqlalchemy import create_engine
 
-file1 = "Book.csv"
-file2 = "Author.csv"
-file3 = "User.csv"
-file4 = "Rating.csv"
-file5 = "ListBook.csv"
-file6 = "List.csv"
+file1 = "database/Book.csv"
+file2 = "database/Author.csv"
+file3 = "database/User.csv"
+file4 = "database/Rating.csv"
+file5 = "database/ListBook.csv"
+file6 = "database/List.csv"
 
 # output = "CompiledData.xlsx"
 
 engine = create_engine('sqlite://', echo=False)
 df1 = pd.read_csv(file1)
-# print(df1)
+print(df1)
 
 df2 = pd.read_csv(file2)
 # print(df2)

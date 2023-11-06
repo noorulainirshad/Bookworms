@@ -8,7 +8,7 @@ CREATE TABLE Book (
 CREATE TABLE User (
     u_userkey int not null,
     u_username varchar(255) not null,
-    u_password varchar(255) not null,
+    u_password varchar(255) not null
 );
 
 CREATE TABLE List (
