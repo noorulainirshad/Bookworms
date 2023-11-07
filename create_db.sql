@@ -6,25 +6,25 @@ CREATE TABLE Book (
 );
 
 CREATE TABLE User (
-    u_userkey integer primary key,
+    u_userkey integer primary key not null,
     u_username varchar(255) not null,
     u_password varchar(255) not null
 );
 
 CREATE TABLE List (
-    l_listkey integer autoincrement primary key not null,
+    l_listkey integer primary key not null,
     l_name varchar(255) not null,
     l_userkey integer not null
 );
 
 CREATE TABLE ListBook (
-    lb_listkey integer autoincrement primary key not null,
+    lb_listkey integer primary key not null,
     lb_bookkey integer not null,
     lb_userkey integer not null
 );
 
 CREATE TABLE Rating (
-    r_ratingkey integer autoincrement primary key not null,
+    r_ratingkey integer primary key not null,
     stars integer not null,
     r_userkey integer not null,
     r_bookkey integer not null,
