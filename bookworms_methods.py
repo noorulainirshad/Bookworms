@@ -55,8 +55,8 @@ def auth(conn):
             return loggedIn
         else:
             # get username and password from user to authenticate
-            username = input('print username: ')
-            password = input('print password: ')
+            username = input('Enter username: ')
+            password = input('Enter password: ')
 
             # check if username + password combination exists in User table
             cursor.execute('''SELECT * FROM User where u_username = ? and u_password = ?''', (username, password))
@@ -90,14 +90,14 @@ def auth(conn):
 
 def delAcct(conn):
     # retrieve account info to delete an account
-    input1 = input('print username: ')
-    input2 = input('print password: ')
+    username = input('Enter username: ')
+    password = input('Enter password: ')
 
-    exists = auth(conn, input1, input2)
+    exists = auth(conn)
     cursor = conn.cursor()
     # print(exists)
     if exists:
-        cursor.execute('''DELETE FROM User where u_username = ? and u_password = ?''', (input1, input2))
+        cursor.execute('''DELETE FROM User where u_username = ? and u_password = ?''', (username, password))
         print("User account deletion successful.")
     else:
         print("User account deletion failed.")
@@ -118,20 +118,20 @@ def createAcct(conn):
     # if not logged in, proceeds to make a new account
     else:
 
-        input1 = input('print username: ')
-        input2 = input('print password: ')
+        username = input('Enter username: ')
+        password = input('Enter password: ')
         cursor = conn.cursor()
 
     # checks to see if username does not previously exist before creating account
-        cursor.execute('''SELECT u_username FROM User WHERE u_username = ?''', (input1,))
+        cursor.execute('''SELECT u_username FROM User WHERE u_username = ?''', (username,))
         exists = cursor.fetchone()
         # print(type(exists))
         # print(tuple(input1))
-        if exists != (input1,):
-            cursor.execute('''INSERT INTO User (u_username, u_password) values(?,?)''', (input1, input2))
+        if exists != (username,):
+            cursor.execute('''INSERT INTO User (u_username, u_password) values(?,?)''', (username, password))
             print("User account creation successful.")
         else:
-            print("User account creation failed because {} is already in use. Please try again with a new username.".format(input1))
+            print("User account creation failed because {} is already in use. Please try again with a new username.".format(username))
         # # try:
 
         # except Error as e:
@@ -140,18 +140,38 @@ def createAcct(conn):
 
 
 def createList(conn):
+    # still need to implement authentification**
     cursor = conn.cursor()
 
     listName = input('Enter list name: ')
 
+    # checks if user has created a list using listName as l_name
     cursor.execute('''SELECT l_name, l_userkey FROM List WHERE l_name = ?''', (listName,))
     exists = cursor.fetchone()
 
-    if exists != (listName,):
+    # user has not created a list using listName as l_name
+    if exists != (str(listName), userKey[0]):
         cursor.execute('''INSERT INTO List (l_name, l_userkey) values(?,?)''', (listName, userKey[0]))
         print("{} was successfully created.".format(listName))
+    # user already created a list using listName as l_name
     else:
-        print("{} was not successfully created.".format(listName))
+        print("{} was not successfully created because you already created a list named {}.".format(listName, listName))
+
+
+def delList(conn):
+    # retrieve account info to delete an account
+    listName = input('Enter the list you want to delete: ')
+    cursor = conn.cursor()
+
+    # checks if user has created a list using listName as l_name
+    cursor.execute('''SELECT l_name, l_userkey FROM List WHERE l_name = ?''', (listName,))
+    exists = cursor.fetchone()
+    # print(exists)
+    if exists == (str(listName), userKey[0]):
+        cursor.execute('''DELETE FROM List where l_name = ? and l_userkey = ?''', (listName, userKey[0]))
+        print("List deletion successful.")
+    else:
+        print("List deletion failed.")
 
 
 def main():
@@ -164,7 +184,8 @@ def main():
         auth(conn)
         #delAcct(conn)
         #createAcct(conn)
-        createList(conn)
+        #createList(conn)
+        delList(conn)
 
     closeConnection(conn, database)
 
