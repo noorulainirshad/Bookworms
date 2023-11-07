@@ -1,38 +1,38 @@
 CREATE TABLE Book (
-    b_bookkey int not null,
-    b_authorkey int not null,
+    b_bookkey integer not null,
+    b_authorkey integer not null,
     b_genre text[] not null,
     title varchar(255) not null
 );
 
 CREATE TABLE User (
-    u_userkey int primary key auto_increment,
+    u_userkey integer primary key,
     u_username varchar(255) not null,
     u_password varchar(255) not null
 );
 
 CREATE TABLE List (
-    l_listkey int auto_increment primary key not null,
+    l_listkey integer autoincrement primary key not null,
     l_name varchar(255) not null,
-    l_userkey int not null
+    l_userkey integer not null
 );
 
 CREATE TABLE ListBook (
-    lb_listkey int auto_increment primary key not null,
-    lb_bookkey int not null,
-    lb_userkey int not null
+    lb_listkey integer autoincrement primary key not null,
+    lb_bookkey integer not null,
+    lb_userkey integer not null
 );
 
 CREATE TABLE Rating (
-    r_ratingkey int auto_increment primary key not null,
-    stars int not null,
-    r_userkey int not null,
-    r_bookkey int not null,
+    r_ratingkey integer autoincrement primary key not null,
+    stars integer not null,
+    r_userkey integer not null,
+    r_bookkey integer not null,
     comment varchar(1000)
 );
 
 CREATE TABLE Author (
-    a_authorkey int not null,
+    a_authorkey integer not null,
     a_authorname varchar(255) not null
 );
 
