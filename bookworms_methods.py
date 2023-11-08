@@ -191,13 +191,14 @@ def delList(conn):
 
 
 def createRating(conn):
+    # implement auth
     cursor = conn.cursor()
     bookName = input("What book do you want to rate? ")
 
     # check if book exists
     cursor.execute('''SELECT title FROM Book 
                         WHERE LOWER(title) = LOWER(?)''', (bookName,))
-
+    # store tuple containing book title in title var
     title = cursor.fetchone()
 
     # if title exists
@@ -210,11 +211,11 @@ def createRating(conn):
                         AND r_userkey = u_userkey
                         AND r_userkey = ?''', (bookName, userKey[0]))
 
-        exists = cursor.fetchone()
+        ratingExists = cursor.fetchone()
         # print(type(exists))
 
         # if there is no previous rating from user on the book
-        if exists is None:
+        if ratingExists is None:
 
             # grabs book key to use for insert statement below
             cursor.execute('''SELECT b_bookkey from Book 
@@ -243,8 +244,46 @@ def createRating(conn):
         print("Unfortunately, that book is not in our database :((((")
 
 
-# def editRating(conn):
-    
+def editRating(conn):
+    cursor = conn.cursor()
+    bookName = input("What book rating do you want to edit? Please enter book name: ")
+
+    # check if book exists
+    # duplicate
+    cursor.execute('''SELECT title FROM Book 
+                        WHERE LOWER(title) = LOWER(?)''', (bookName,))
+    title = cursor.fetchone
+
+    if title is not None:
+        # check if rating exists (same user and bookName)
+        cursor.execute('''SELECT r_ratingkey FROM Rating, Book, User 
+                        WHERE r_bookkey = b_bookkey 
+                        AND LOWER(title) = LOWER(?) 
+                        AND r_userkey = u_userkey
+                        AND r_userkey = ?''', (bookName, userKey[0]))
+
+        ratingKey = cursor.fetchone()
+
+        if ratingKey is not None:
+            stars = 0
+            # GUI: create a textbox that only accepts int vals
+            try:
+                stars = int(input("How many stars would you give this book? (Please enter an integer.) "))
+            except Error as e:
+                print("Rating failed. Please enter an integer.")
+
+            # GUI: comments are optional
+            comment = input("Comments (optional): ")
+
+            cursor.execute('''UPDATE Rating 
+                            SET stars = ?, comment = ? 
+                            WHERE r_ratingkey = ?''', (stars, comment, ratingKey[0]))
+            print("Rating was successfully updated.")
+        else:
+            print("Sorry, you did not write a rating for {}".format(title[0]))
+    else:
+        print("Sorry, there is no rating because this book is not in our database")
+
 
 def main():
     # database = r"data.sqlite"
@@ -258,7 +297,8 @@ def main():
         #createAcct(conn)
         #createList(conn)
         #delList(conn)
-        createRating(conn)
+        #createRating(conn)
+        editRating(conn)
 
     closeConnection(conn, database)
 
