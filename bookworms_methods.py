@@ -190,6 +190,51 @@ def delList(conn):
         print("List deletion failed.")
 
 
+def addBookToList(conn):
+    cursor = conn.cursor()
+
+    listName = input("What list do you want to add a book to? ")
+
+    # checks if user has created a list using listName as l_name
+    # duplicate
+    cursor.execute('''SELECT l_name, l_userkey 
+                    FROM List 
+                    WHERE l_name = ?''', (listName,))
+
+    listExists = cursor.fetchone()
+
+    # if list exists
+    if listExists is not None:
+        bookName = input("What book do you want to add? ")
+
+        # check if book exists
+        # duplicate
+        cursor.execute('''SELECT b_bookkey FROM Book 
+                            WHERE LOWER(title) = LOWER(?)''', (bookName,))
+        # store tuple containing book title in title var
+        bookKey = cursor.fetchone()
+
+        if bookKey is not None:
+            # check if book already exists in list
+            cursor.execute('''SELECT lb_bookkey FROM ListBook 
+                                WHERE lb_bookkey = ?''', (bookKey[0],))
+            # store tuple containing book title in title var
+            bookInListBook = cursor.fetchone()
+            # print(exists)
+            if listExists == (str(listName), userKey[0]) and bookInListBook is None:
+                cursor.execute('''INSERT INTO ListBook 
+                                (lb_listkey, lb_bookkey, lb_userkey) values(?,?,?)''',
+                               (listExists[1], bookKey[0],  userKey[0]))
+                print("Book addition to list was successful.")
+            else:
+                print("Book addition to list was not successful.")
+        else:
+            print("Book does not exist.")
+    # list does not exist
+    else:
+        print("Sorry, your list does not exist.")
+
+
 def createRating(conn):
     # implement auth
     cursor = conn.cursor()
@@ -302,7 +347,8 @@ def deleteRating(conn):
     # if title exists
     if title is not None:
         # check if rating exists (same user and bookName)
-        cursor.execute('''SELECT r_ratingkey, r_bookkey FROM Rating, Book, User 
+        cursor.execute('''SELECT r_ratingkey, r_bookkey 
+                        FROM Rating, Book, User 
                         WHERE r_bookkey = b_bookkey 
                         AND LOWER(title) = LOWER(?) 
                         AND r_userkey = u_userkey
@@ -357,12 +403,13 @@ def main():
         auth(conn)
         #delAcct(conn)
         # createAcct(conn)
-        #createList(conn)
+        # createList(conn)
         #delList(conn)
         # createRating(conn)
         # editRating(conn)
         # deleteRating(conn)
-        displayRatings(conn)
+        # displayRatings(conn)
+        addBookToList(conn)
 
     closeConnection(conn, database)
 

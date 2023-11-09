@@ -18,7 +18,7 @@ CREATE TABLE List (
 );
 
 CREATE TABLE ListBook (
-    lb_listkey integer primary key not null,
+    lb_listkey integer not null,
     lb_bookkey integer not null,
     lb_userkey integer not null
 );
