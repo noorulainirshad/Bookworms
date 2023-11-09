@@ -254,6 +254,7 @@ def editRating(conn):
                         WHERE LOWER(title) = LOWER(?)''', (bookName,))
     title = cursor.fetchone
 
+    # if title exists
     if title is not None:
         # check if rating exists (same user and bookName)
         cursor.execute('''SELECT r_ratingkey FROM Rating, Book, User 
@@ -264,6 +265,7 @@ def editRating(conn):
 
         ratingKey = cursor.fetchone()
 
+        # if ratingKey exists
         if ratingKey is not None:
             stars = 0
             # GUI: create a textbox that only accepts int vals
@@ -279,10 +281,63 @@ def editRating(conn):
                             SET stars = ?, comment = ? 
                             WHERE r_ratingkey = ?''', (stars, comment, ratingKey[0]))
             print("Rating was successfully updated.")
+        # rating does not exist
         else:
             print("Sorry, you did not write a rating for {}".format(title[0]))
+    # title does not exist in database
     else:
-        print("Sorry, there is no rating because this book is not in our database")
+        print("Sorry, there is no rating because this book is not in our database.")
+
+
+def deleteRating(conn):
+    cursor = conn.cursor()
+    bookName = input("What book rating do you want to edit? Please enter book name: ")
+
+    # check if book exists
+    # duplicate
+    cursor.execute('''SELECT title FROM Book 
+                        WHERE LOWER(title) = LOWER(?)''', (bookName,))
+    title = cursor.fetchone()
+
+    # if title exists
+    if title is not None:
+        # check if rating exists (same user and bookName)
+        cursor.execute('''SELECT r_ratingkey, r_bookkey FROM Rating, Book, User 
+                        WHERE r_bookkey = b_bookkey 
+                        AND LOWER(title) = LOWER(?) 
+                        AND r_userkey = u_userkey
+                        AND r_userkey = ?''', (bookName, userKey[0]))
+        ratingKey_and_bookKey = cursor.fetchone()
+        # if ratingKey_and_bookKey exists
+        if ratingKey_and_bookKey is not None:
+            cursor.execute('''DELETE FROM Rating 
+                            WHERE r_ratingkey = ?
+                            AND r_bookkey = ? 
+                            AND r_userkey = ?''', (ratingKey_and_bookKey[0], ratingKey_and_bookKey[1], userKey[0]))
+        # rating does not exist
+        else:
+            print("There was no rating previously written by you for this book.")
+    # title does not exist in database
+    else:
+        print("Sorry, there is no rating because this book is not in our database.")
+
+#
+# def displayRatings(conn):
+#     cursor = conn.cursor()
+#     bookName = input("What book rating do you want to edit? Please enter book name: ")
+#
+#     # check if book exists
+#     # duplicate
+#     cursor.execute('''SELECT title, b_bookkey FROM Book
+#                         WHERE LOWER(title) = LOWER(?)''', (bookName,))
+#     title_and_bookkey = cursor.fetchone()
+#
+#     # if title exists
+#     if title_and_bookkey is not None:
+#         cursor.execute('''SELECT title''')
+#
+#     else:
+#         print("Unfortunately, that book is not in our database")
 
 
 def main():
@@ -298,7 +353,8 @@ def main():
         #createList(conn)
         #delList(conn)
         #createRating(conn)
-        editRating(conn)
+        # editRating(conn)
+        deleteRating(conn)
 
     closeConnection(conn, database)
 
