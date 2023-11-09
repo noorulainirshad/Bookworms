@@ -321,23 +321,30 @@ def deleteRating(conn):
     else:
         print("Sorry, there is no rating because this book is not in our database.")
 
-#
-# def displayRatings(conn):
-#     cursor = conn.cursor()
-#     bookName = input("What book rating do you want to edit? Please enter book name: ")
-#
-#     # check if book exists
-#     # duplicate
-#     cursor.execute('''SELECT title, b_bookkey FROM Book
-#                         WHERE LOWER(title) = LOWER(?)''', (bookName,))
-#     title_and_bookkey = cursor.fetchone()
-#
-#     # if title exists
-#     if title_and_bookkey is not None:
-#         cursor.execute('''SELECT title''')
-#
-#     else:
-#         print("Unfortunately, that book is not in our database")
+
+def displayRatings(conn):
+    cursor = conn.cursor()
+    bookName = input("What book ratings do you want to view? Please enter book name: ")
+
+    # check if book exists
+    # duplicate
+    cursor.execute('''SELECT b_bookkey FROM Book
+                        WHERE LOWER(title) = LOWER(?)''', (bookName,))
+    bookKey = cursor.fetchone()
+
+    # if book key exists
+    if bookKey is not None:
+        cursor.execute('''SELECT u_username, stars, comment
+                        FROM User, Rating, Book
+                        WHERE u_userkey = r_userkey
+                        AND r_bookkey = b_bookkey
+                        AND b_bookkey = ?
+                        ''', (bookKey[0],))
+        ratings = cursor.fetchall()
+        print(ratings)
+    # book does not exist in database
+    else:
+        print("Unfortunately, that book is not in our database")
 
 
 def main():
@@ -349,12 +356,13 @@ def main():
     with conn:
         auth(conn)
         #delAcct(conn)
-        #createAcct(conn)
+        # createAcct(conn)
         #createList(conn)
         #delList(conn)
-        #createRating(conn)
+        # createRating(conn)
         # editRating(conn)
-        deleteRating(conn)
+        # deleteRating(conn)
+        displayRatings(conn)
 
     closeConnection(conn, database)
 
