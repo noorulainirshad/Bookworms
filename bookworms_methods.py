@@ -190,14 +190,60 @@ def delList(conn):
         print("List deletion failed.")
 
 
+def addBookToList(conn):
+    cursor = conn.cursor()
+
+    listName = input("What list do you want to add a book to? ")
+
+    # checks if user has created a list using listName as l_name
+    # duplicate
+    cursor.execute('''SELECT l_name, l_userkey 
+                    FROM List 
+                    WHERE l_name = ?''', (listName,))
+
+    listExists = cursor.fetchone()
+
+    # if list exists
+    if listExists is not None:
+        bookName = input("What book do you want to add? ")
+
+        # check if book exists
+        # duplicate
+        cursor.execute('''SELECT b_bookkey FROM Book 
+                            WHERE LOWER(title) = LOWER(?)''', (bookName,))
+        # store tuple containing book title in title var
+        bookKey = cursor.fetchone()
+
+        if bookKey is not None:
+            # check if book already exists in list
+            cursor.execute('''SELECT lb_bookkey FROM ListBook 
+                                WHERE lb_bookkey = ?''', (bookKey[0],))
+            # store tuple containing book title in title var
+            bookInListBook = cursor.fetchone()
+            # print(exists)
+            if listExists == (str(listName), userKey[0]) and bookInListBook is None:
+                cursor.execute('''INSERT INTO ListBook 
+                                (lb_listkey, lb_bookkey, lb_userkey) values(?,?,?)''',
+                               (listExists[1], bookKey[0],  userKey[0]))
+                print("Book addition to list was successful.")
+            else:
+                print("Book addition to list was not successful.")
+        else:
+            print("Book does not exist.")
+    # list does not exist
+    else:
+        print("Sorry, your list does not exist.")
+
+
 def createRating(conn):
+    # implement auth
     cursor = conn.cursor()
     bookName = input("What book do you want to rate? ")
 
     # check if book exists
     cursor.execute('''SELECT title FROM Book 
                         WHERE LOWER(title) = LOWER(?)''', (bookName,))
-
+    # store tuple containing book title in title var
     title = cursor.fetchone()
 
     # if title exists
@@ -210,11 +256,11 @@ def createRating(conn):
                         AND r_userkey = u_userkey
                         AND r_userkey = ?''', (bookName, userKey[0]))
 
-        exists = cursor.fetchone()
+        ratingExists = cursor.fetchone()
         # print(type(exists))
 
         # if there is no previous rating from user on the book
-        if exists is None:
+        if ratingExists is None:
 
             # grabs book key to use for insert statement below
             cursor.execute('''SELECT b_bookkey from Book 
@@ -243,8 +289,109 @@ def createRating(conn):
         print("Unfortunately, that book is not in our database :((((")
 
 
-# def editRating(conn):
-    
+def editRating(conn):
+    cursor = conn.cursor()
+    bookName = input("What book rating do you want to edit? Please enter book name: ")
+
+    # check if book exists
+    # duplicate
+    cursor.execute('''SELECT title FROM Book 
+                        WHERE LOWER(title) = LOWER(?)''', (bookName,))
+    title = cursor.fetchone
+
+    # if title exists
+    if title is not None:
+        # check if rating exists (same user and bookName)
+        cursor.execute('''SELECT r_ratingkey FROM Rating, Book, User 
+                        WHERE r_bookkey = b_bookkey 
+                        AND LOWER(title) = LOWER(?) 
+                        AND r_userkey = u_userkey
+                        AND r_userkey = ?''', (bookName, userKey[0]))
+
+        ratingKey = cursor.fetchone()
+
+        # if ratingKey exists
+        if ratingKey is not None:
+            stars = 0
+            # GUI: create a textbox that only accepts int vals
+            try:
+                stars = int(input("How many stars would you give this book? (Please enter an integer.) "))
+            except Error as e:
+                print("Rating failed. Please enter an integer.")
+
+            # GUI: comments are optional
+            comment = input("Comments (optional): ")
+
+            cursor.execute('''UPDATE Rating 
+                            SET stars = ?, comment = ? 
+                            WHERE r_ratingkey = ?''', (stars, comment, ratingKey[0]))
+            print("Rating was successfully updated.")
+        # rating does not exist
+        else:
+            print("Sorry, you did not write a rating for {}".format(title[0]))
+    # title does not exist in database
+    else:
+        print("Sorry, there is no rating because this book is not in our database.")
+
+
+def deleteRating(conn):
+    cursor = conn.cursor()
+    bookName = input("What book rating do you want to edit? Please enter book name: ")
+
+    # check if book exists
+    # duplicate
+    cursor.execute('''SELECT title FROM Book 
+                        WHERE LOWER(title) = LOWER(?)''', (bookName,))
+    title = cursor.fetchone()
+
+    # if title exists
+    if title is not None:
+        # check if rating exists (same user and bookName)
+        cursor.execute('''SELECT r_ratingkey, r_bookkey 
+                        FROM Rating, Book, User 
+                        WHERE r_bookkey = b_bookkey 
+                        AND LOWER(title) = LOWER(?) 
+                        AND r_userkey = u_userkey
+                        AND r_userkey = ?''', (bookName, userKey[0]))
+        ratingKey_and_bookKey = cursor.fetchone()
+        # if ratingKey_and_bookKey exists
+        if ratingKey_and_bookKey is not None:
+            cursor.execute('''DELETE FROM Rating 
+                            WHERE r_ratingkey = ?
+                            AND r_bookkey = ? 
+                            AND r_userkey = ?''', (ratingKey_and_bookKey[0], ratingKey_and_bookKey[1], userKey[0]))
+        # rating does not exist
+        else:
+            print("There was no rating previously written by you for this book.")
+    # title does not exist in database
+    else:
+        print("Sorry, there is no rating because this book is not in our database.")
+
+
+def displayRatings(conn):
+    cursor = conn.cursor()
+    bookName = input("What book ratings do you want to view? Please enter book name: ")
+
+    # check if book exists
+    # duplicate
+    cursor.execute('''SELECT b_bookkey FROM Book
+                        WHERE LOWER(title) = LOWER(?)''', (bookName,))
+    bookKey = cursor.fetchone()
+
+    # if book key exists
+    if bookKey is not None:
+        cursor.execute('''SELECT u_username, stars, comment
+                        FROM User, Rating, Book
+                        WHERE u_userkey = r_userkey
+                        AND r_bookkey = b_bookkey
+                        AND b_bookkey = ?
+                        ''', (bookKey[0],))
+        ratings = cursor.fetchall()
+        print(ratings)
+    # book does not exist in database
+    else:
+        print("Unfortunately, that book is not in our database")
+
 
 def main():
     # database = r"data.sqlite"
@@ -255,10 +402,14 @@ def main():
     with conn:
         auth(conn)
         #delAcct(conn)
-        #createAcct(conn)
-        #createList(conn)
+        # createAcct(conn)
+        # createList(conn)
         #delList(conn)
-        createRating(conn)
+        # createRating(conn)
+        # editRating(conn)
+        # deleteRating(conn)
+        # displayRatings(conn)
+        addBookToList(conn)
 
     closeConnection(conn, database)
 
