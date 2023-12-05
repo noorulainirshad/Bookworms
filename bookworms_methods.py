@@ -401,16 +401,65 @@ def main():
     # create a database connection
     conn = openConnection(database)
     with conn:
-        auth(conn)
+        while True:
+            acctExists = input('Do you have an account with Bookworms? Y/N: ')
+            if acctExists.upper() == 'Y':
+                auth(conn)
+                break
+            elif acctExists.upper() == 'N':
+                makeAcct = input('Would you like to make an account? Y/N: ')
+                if makeAcct.upper() == 'Y':
+                    createAcct(conn)
+                    print('Please login with your new account!\n')
+                    auth(conn)
+                else:
+                    print('Understandable, have a nice day!')
+                break
+            else:
+                print('Please input a valid response.\n')
+
+
+        while loggedIn:
+            print('''1: create a new list \n
+            2: add to a list \n
+            3: delete a list \n
+            4: create a new book review \n
+            5: edit a review \n
+            6: display a book's reviews \n
+            7: delete an account \n
+            8: logout\n
+            ''')
+
+            response = int(input('Welcome! What action would you like to perform?'))
+
+            if response == 1:
+                createList(conn)
+            if response == 2:
+                addBookToList(conn)
+            if response == 3:
+                deleteList(conn)
+            if response == 4:
+                createReview(conn)
+            if response == 5:
+                editReview(conn)
+            if response == 6:
+                displayRatings(conn)
+            if response == 7:
+                delAcct(conn)
+            if response == 8:
+                logOut(conn)
+
+
+
         #delAcct(conn)
         # createAcct(conn)
         # createList(conn)
-        #delList(conn)
+        # delList(conn)
         # createRating(conn)
         # editRating(conn)
         # deleteRating(conn)
         # displayRatings(conn)
-        addBookToList(conn)
+        # addBookToList(conn)
 
     closeConnection(conn, database)
 
