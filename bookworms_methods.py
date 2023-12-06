@@ -212,13 +212,15 @@ def addBookToList(conn):
         # duplicate
         cursor.execute('''SELECT b_bookkey FROM Book 
                             WHERE LOWER(title) = LOWER(?)''', (bookName,))
-        # store tuple containing book title in title var
+        # store tuple containing book key
         bookKey = cursor.fetchone()
 
+        # if book exists
         if bookKey is not None:
             # check if book already exists in list
             cursor.execute('''SELECT lb_bookkey FROM ListBook 
-                                WHERE lb_bookkey = ?''', (bookKey[0],))
+                                WHERE lb_bookkey = ? 
+                                AND lb_listkey = ?''', (bookKey[0],listExists[0]))
             # store tuple containing book title in title var
             bookInListBook = cursor.fetchone()
             # print(exists)
@@ -418,19 +420,20 @@ def main():
             else:
                 print('Please input a valid response.\n')
 
-
+        print('\nWelcome to Bookworms!')
         while loggedIn:
-            print('''1: create a new list \n
-            2: add to a list \n
-            3: delete a list \n
-            4: create a new book review \n
-            5: edit a review \n
-            6: display a book's reviews \n
-            7: delete an account \n
-            8: logout\n
-            ''')
+            print('''
+These are the available commands:
+1: create a new list 
+2: add to a list
+3: delete a list
+4: create a new book review
+5: edit a review 
+6: display a book's reviews 
+7: delete an account
+8: logout\n''')
 
-            response = int(input('Welcome! What action would you like to perform?'))
+            response = int(input('What action would you like to perform? '))
 
             if response == 1:
                 createList(conn)
