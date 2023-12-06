@@ -235,7 +235,29 @@ def addBookToList(conn):
     else:
         print("Sorry, your list does not exist.")
 
+def displayList(conn):
+    cursor = conn.cursor()
+    bookName = input("What book list do you want to view? Please enter list name: ")
 
+    # check if list exists
+    # duplicate
+    cursor.execute('''SELECT b_bookkey FROM Book
+                        WHERE LOWER(title) = LOWER(?)''', (bookName,))
+    bookKey = cursor.fetchone()
+
+    # if book key exists
+    if bookKey is not None:
+        cursor.execute('''SELECT u_username, stars, comment
+                        FROM User, Rating, Book
+                        WHERE u_userkey = r_userkey
+                        AND r_bookkey = b_bookkey
+                        AND b_bookkey = ?
+                        ''', (bookKey[0],))
+        ratings = cursor.fetchall()
+        print(ratings)
+    # book does not exist in database
+    else:
+        print("Unfortunately, that book is not in our database")
 def createRating(conn):
     # implement auth
     cursor = conn.cursor()
@@ -420,6 +442,7 @@ def main():
 
 
         while loggedIn:
+            conn = openConnection(database)
             print('''1: create a new list \n
             2: add to a list \n
             3: delete a list \n
@@ -437,11 +460,11 @@ def main():
             if response == 2:
                 addBookToList(conn)
             if response == 3:
-                deleteList(conn)
+                delList(conn)
             if response == 4:
-                createReview(conn)
+                createRating(conn)
             if response == 5:
-                editReview(conn)
+                editRating(conn)
             if response == 6:
                 displayRatings(conn)
             if response == 7:
@@ -449,17 +472,6 @@ def main():
             if response == 8:
                 logOut(conn)
 
-
-
-        #delAcct(conn)
-        # createAcct(conn)
-        # createList(conn)
-        # delList(conn)
-        # createRating(conn)
-        # editRating(conn)
-        # deleteRating(conn)
-        # displayRatings(conn)
-        # addBookToList(conn)
 
     closeConnection(conn, database)
 
