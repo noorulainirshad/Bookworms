@@ -107,6 +107,7 @@ def delAcct(conn):
     else:
         print("User account deletion failed.")
 
+    conn.commit()
     #     try:
     #         cursor.execute('''DELETE FROM User where u_username = ? and u_password = ?''', (input1, input2))
     #         print("User account deletion successful.")
@@ -138,6 +139,8 @@ def createAcct(conn):
             print("User account creation successful.")
         else:
             print("User account creation failed because {} is already in use. Please try again with a new username.".format(username))
+
+    conn.commit()
         # # try:
 
         # except Error as e:
@@ -168,6 +171,7 @@ def createList(conn):
     else:
         print("{} was not successfully created because you already created a list named {}.".format(listName, listName))
 
+    conn.commit()
 
 def delList(conn):
     # retrieve account info to delete an account
@@ -190,6 +194,7 @@ def delList(conn):
     else:
         print("List deletion failed.")
 
+    conn.commit()
 
 def addBookToList(conn):
     cursor = conn.cursor()
@@ -220,7 +225,7 @@ def addBookToList(conn):
             # check if book already exists in list
             cursor.execute('''SELECT lb_bookkey FROM ListBook 
                                 WHERE lb_bookkey = ? 
-                                AND lb_listkey = ?''', (bookKey[0],listExists[0]))
+                                AND lb_listkey = ?''', (bookKey[0], listExists[0]))
             # store tuple containing book title in title var
             bookInListBook = cursor.fetchone()
             # print(exists)
@@ -237,6 +242,7 @@ def addBookToList(conn):
     else:
         print("Sorry, your list does not exist.")
 
+    conn.commit()
 
 def createRating(conn):
     # implement auth
@@ -291,6 +297,7 @@ def createRating(conn):
     else:
         print("Unfortunately, that book is not in our database :((((")
 
+    conn.commit()
 
 def editRating(conn):
     cursor = conn.cursor()
@@ -336,6 +343,7 @@ def editRating(conn):
     else:
         print("Sorry, there is no rating because this book is not in our database.")
 
+    conn.commit()
 
 def deleteRating(conn):
     cursor = conn.cursor()
@@ -370,6 +378,7 @@ def deleteRating(conn):
     else:
         print("Sorry, there is no rating because this book is not in our database.")
 
+    conn.commit()
 
 def displayRatings(conn):
     cursor = conn.cursor()
@@ -395,6 +404,7 @@ def displayRatings(conn):
     else:
         print("Unfortunately, that book is not in our database")
 
+    conn.commit()
 
 def main():
     # database = r"data.sqlite"
