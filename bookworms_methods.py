@@ -100,9 +100,11 @@ def delAcct(conn):
     cursor = conn.cursor()
     # print(exists)
     if exists:
-        cursor.execute('''DELETE FROM User 
+        cursor.execute('''SELECT u_userkey from User 
                     WHERE u_username = ? 
-                    AND u_password = ?''', (username, password))
+                    AND u_password = ?
+                    
+                    DELETE u_userkey''', (username, password))
         print("User account deletion successful.")
     else:
         print("User account deletion failed.")
