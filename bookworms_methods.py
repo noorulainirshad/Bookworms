@@ -44,6 +44,7 @@ def closeConnection(conn, _dbFile):
 def logOut(conn):
     global loggedIn
     loggedIn = False
+    print('You have successfully logged out. Have a nice day!')
 
 
 def auth(conn):
@@ -435,13 +436,14 @@ def main():
             print('''
 These are the available commands:
 1: create a new list 
-2: add to a list
-3: delete a list
-4: create a new book review
-5: edit a review 
-6: display a book's reviews 
-7: delete an account
-8: logout\n''')
+2: add a book to a list
+3: delete a book from a list
+4: delete a list
+5: create a new book review
+6: edit a review 
+7: display a book's reviews 
+8: delete an account
+9: logout\n''')
 
             response = int(input('What action would you like to perform? '))
 
