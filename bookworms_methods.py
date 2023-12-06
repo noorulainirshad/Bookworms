@@ -101,9 +101,16 @@ def delAcct(conn):
     cursor = conn.cursor()
     # print(exists)
     if exists:
-        cursor.execute('''DELETE FROM User 
-                    WHERE u_username = ? 
-                    AND u_password = ?''', (username, password))
+        cursor.execute('''
+                    DELETE FROM User
+                    WHERE u_userkey in (
+                    SELECT u_userkey from User, List, ListBook, Rating 
+                    WHERE u_username = ?
+                    AND l_userkey = u_userkey
+                    AND lb_userkey = u_userkey
+                    AND r_userkey = u_userkey 
+                    AND u_password = ?)''', (username, password))
+
         print("User account deletion successful.")
     else:
         print("User account deletion failed.")
@@ -180,16 +187,22 @@ def delList(conn):
     cursor = conn.cursor()
 
     # checks if user has created a list using listName as l_name
-    cursor.execute('''SELECT l_name, l_userkey 
+    cursor.execute('''SELECT l_name, l_listkey, l_userkey 
                     FROM List 
                     WHERE l_name = ?''', (listName,))
 
     exists = cursor.fetchone()
     # print(exists)
     if exists == (str(listName), userKey[0]):
-        cursor.execute('''DELETE FROM List 
+        cursor.execute('''DELETE FROM List
                         WHERE l_name = ? 
                         AND l_userkey = ?''', (listName, userKey[0]))
+
+        cursor.execute('''DELETE FROM ListBook
+                        WHERE l_listkey = lb_listkey
+                        and lb_listkey = ? 
+                        AND l_userkey = lb_userkey
+                        AND lb_userkey = ?''', (exists[1], userKey[0]))
 
         print("List deletion successful.")
     else:
@@ -197,16 +210,17 @@ def delList(conn):
 
     conn.commit()
 
+
 def addBookToList(conn):
     cursor = conn.cursor()
 
     listName = input("What list do you want to add a book to? ")
 
-    # checks if user has created a list using listName as l_name
+# checks if user has created a list using listName as l_name
     # duplicate
-    cursor.execute('''SELECT l_name, l_userkey 
+    cursor.execute('''SELECT l_name, l_listkey, l_userkey 
                     FROM List 
-                    WHERE l_name = ?''', (listName,))
+                    WHERE LOWER(l_name) = LOWER(?)''', (listName,))
 
     listExists = cursor.fetchone()
 
@@ -229,12 +243,14 @@ def addBookToList(conn):
                                 AND lb_listkey = ?''', (bookKey[0], listExists[0]))
             # store tuple containing book title in title var
             bookInListBook = cursor.fetchone()
+
             # print(exists)
-            if listExists == (str(listName), userKey[0]) and bookInListBook is None:
+            if listExists[0] == str(listName) and listExists[2] == userKey[0] and bookInListBook is None:
                 cursor.execute('''INSERT INTO ListBook 
                                 (lb_listkey, lb_bookkey, lb_userkey) values(?,?,?)''',
-                               (listExists[1], bookKey[0],  userKey[0]))
+                               (listExists[1], bookKey[0], userKey[0]))
                 print("Book addition to list was successful.")
+                conn.commit()
             else:
                 print("Book addition to list was not successful.")
         else:
@@ -247,28 +263,33 @@ def addBookToList(conn):
 
 def displayList(conn):
     cursor = conn.cursor()
-    bookName = input("What book list do you want to view? Please enter list name: ")
-
+    listName = input("What book list do you want to view? Please enter list name: ")
 
     # check if list exists
     # duplicate
-    cursor.execute('''SELECT b_bookkey FROM Book
-                        WHERE LOWER(title) = LOWER(?)''', (bookName,))
-    bookKey = cursor.fetchone()
+    cursor.execute('''SELECT l_listkey 
+                    FROM List
+                    WHERE LOWER(l_name) = LOWER(?)''', (listName,))
 
-    # if book key exists
-    if bookKey is not None:
-        cursor.execute('''SELECT u_username, stars, comment
-                        FROM User, Rating, Book
-                        WHERE u_userkey = r_userkey
-                        AND r_bookkey = b_bookkey
-                        AND b_bookkey = ?
-                        ''', (bookKey[0],))
-        ratings = cursor.fetchall()
-        print(ratings)
-    # book does not exist in database
+    listKey = cursor.fetchone()
+    # and l_userkey = ?''', (listName, int(userKey)))
+    # if list key exists
+    if listKey is not None:
+        cursor.execute('''SELECT title
+                        FROM User, Book, ListBook, List
+                        WHERE lb_userkey = u_userkey
+                        AND lb_bookkey = b_bookkey
+                        AND lb_listkey = l_listkey
+                        AND l_listkey = ?
+                        ''', (listKey[0],))
+        # book is a list of tuples
+        books = cursor.fetchall()
+        print(listName + '\n-------------------------------')
+        for i in books:
+            print(i[0])
+    # list does not exist in database
     else:
-        print("Unfortunately, that book is not in our database")
+        print("Unfortunately, that list is not in our database")
 def createRating(conn):
     # implement auth
     cursor = conn.cursor()
@@ -453,42 +474,59 @@ def main():
                     print('Understandable, have a nice day!')
                 break
             else:
-                print('Please input a valid response.\n')
+                print('Please input a valid response.\n\n')
+        if loggedIn == True:
 
-        print('\nWelcome to Bookworms!')
-        while loggedIn:
             print('''
-These are the available commands:
-1: create a new list 
-2: add a book to a list
-3: delete a book from a list
-4: delete a list
-5: create a new book review
-6: edit a review 
-7: display a book's reviews 
-8: delete an account
-9: logout\n''')
+                                      
+       .---|__|           .-.     |~~~|
+    .--|===|--|_          |_|     |~~~|--.
+    |  |===|  |'\     .---!~|  .--|   |--|
+    |%%|   |  |.'\    |===| |--|%%|   |  |
+    |%%|   |  |\.'\   |   | |__|  |   |  |
+    |  |   |  | \  \  |===| |==|  |   |  |
+    |  |   |__|  \.'\ |   |_|__|  |~~~|__|
+    |  |===|--|   \.'\|===|~|--|%%|~~~|--|
+    ^--^---'--^    `-'`---^-^--^--^---'--' 
+            ''')
+            print('\nWelcome to Bookworms!')
+            while loggedIn:
+                print('''
+    These are the available commands:
+    1: create a new list 
+    2: add a book to a list
+    3: delete a book from a list
+    4: display a list
+    5: delete a list
+    6: create a new book review
+    7: edit a review 
+    8: display a book's reviews 
+    9: delete an account
+    10: logout\n''')
 
 
-            response = int(input('What action would you like to perform? '))
+                response = int(input('What action would you like to perform? '))
 
-            if response == 1:
-                createList(conn)
-            if response == 2:
-                addBookToList(conn)
-            if response == 3:
-                delList(conn)
-            if response == 4:
-                createRating(conn)
-            if response == 5:
-                editRating(conn)
-            if response == 6:
-                displayRatings(conn)
-            if response == 7:
-                delAcct(conn)
-            if response == 8:
-                logOut(conn)
-
+                if response == 1:
+                    createList(conn)
+                if response == 2:
+                    addBookToList(conn)
+                # if response == 3:
+                #     #delBookFromList
+                if response == 4:
+                    displayList(conn)
+                if response == 5:
+                    delList(conn)
+                if response == 6:
+                    createRating(conn)
+                if response == 7:
+                    editRating(conn)
+                if response == 8:
+                    displayRatings(conn)
+                if response == 9:
+                    delAcct(conn)
+                if response == 10:
+                    logOut(conn)
 
     closeConnection(conn, database)
 

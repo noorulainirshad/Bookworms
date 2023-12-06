@@ -36,6 +36,14 @@ CREATE TABLE Author (
     a_authorname varchar(255) not null
 );
 
+CREATE TRIGGER delete_user_info
+BEFORE DELETE ON User
+BEGIN
+    DELETE FROM ListBook WHERE lb_userkey = OLD.lb_userkey;
+    DELETE FROM Rating WHERE r_userkey = OLD.r_userkey;
+    DELETE FROM List WHERE l_userkey = OLD.l_userkey;
+END;
+
 -- CREATE TABLE Genre (
 --     g_genrekey int not null,
 --     g_genrename varchar(255) not null
